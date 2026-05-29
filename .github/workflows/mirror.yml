@@ -24,10 +24,11 @@ jobs:
           REPO_NAME="${GITHUB_REPOSITORY#*/}"
           GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@gitlab.com/gocenalper/${REPO_NAME}.git"
 
-          # Mevcut branch'i aynı isimle GitLab'a push'la (proje yoksa push-to-create ile oluşur)
-          git push --force "$GITLAB_URL" "HEAD:${GITHUB_REF_NAME}"
+          # Mevcut branch'i aynı isimle GitLab'a push'la (normal/fast-forward push;
+          # korumalı branch force push'a izin vermediği için --force kullanmıyoruz)
+          git push "$GITLAB_URL" "HEAD:${GITHUB_REF_NAME}"
 
           # Tag'leri de aynala
-          git push --force --tags "$GITLAB_URL" || true
+          git push --tags "$GITLAB_URL" || true
 
           echo "Mirrored ${GITHUB_REPOSITORY} -> gitlab.com/gocenalper/${REPO_NAME} (branch: ${GITHUB_REF_NAME})"
