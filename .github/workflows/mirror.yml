@@ -1,0 +1,33 @@
+name: Mirror to GitLab
+
+# Her push'ta (tüm branch'ler) ve manuel tetiklemede GitLab'a aynalar.
+on:
+  push:
+    branches: ['**']
+    tags: ['**']
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          set -euo pipefail
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          GITLAB_URL="https://oauth2:${GITLAB_TOKEN}@gitlab.com/gocenalper/${REPO_NAME}.git"
+
+          # Mevcut branch'i aynı isimle GitLab'a push'la (proje yoksa push-to-create ile oluşur)
+          git push --force "$GITLAB_URL" "HEAD:${GITHUB_REF_NAME}"
+
+          # Tag'leri de aynala
+          git push --force --tags "$GITLAB_URL" || true
+
+          echo "Mirrored ${GITHUB_REPOSITORY} -> gitlab.com/gocenalper/${REPO_NAME} (branch: ${GITHUB_REF_NAME})"
